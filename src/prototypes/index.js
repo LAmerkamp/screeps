@@ -1,3 +1,5 @@
 let files = {
-    creep: require("./creep")
+    storeEnerrgy: require("./storeEnergy"),
+    harvesting: require("./harvesting"),
+    upgradingController: require("./upgradingController")
 }

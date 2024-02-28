@@ -7,7 +7,9 @@ function spawnCreeps(room) {
 
 
     // get the data for spawning a new creep of creepTypeNeeded
-    let creepSpawnData = creepLogic['harvester'] && creepLogic['harvester'].spawnData(room);
+    let creepSpawnData;
+    //let creepSpawnData = creepLogic['harvester'] && creepLogic['harvester'].spawnData(room);
+    //let creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
     /* console.log(room, JSON.stringify(creepSpawnData)); */
 
     if (creepSpawnData) {
