@@ -49,7 +49,7 @@ function __getDirname(path) {
 	return require("path").resolve(__dirname + "/" + path + "/../");
 }
 /********** End of header **********/
-/********** Start module 0: C:\Users\lukas\Documents\screeps-starter-master\src\main.js **********/
+/********** Start module 0: C:\Users\lukas\Desktop\screepsKI\src\main.js **********/
 __modules[0] = function(module, exports) {
 let creepLogic = __require(1,0);
 let roomLogic = __require(2,0);
@@ -76,8 +76,8 @@ module.exports.loop = function () {
 }
 return module.exports;
 }
-/********** End of module 0: C:\Users\lukas\Documents\screeps-starter-master\src\main.js **********/
-/********** Start module 1: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\index.js **********/
+/********** End of module 0: C:\Users\lukas\Desktop\screepsKI\src\main.js **********/
+/********** Start module 1: C:\Users\lukas\Desktop\screepsKI\src\creeps\index.js **********/
 __modules[1] = function(module, exports) {
 let creepLogic = {
     harvester:     __require(4,1),
@@ -87,8 +87,8 @@ let creepLogic = {
 module.exports = creepLogic;
 return module.exports;
 }
-/********** End of module 1: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\index.js **********/
-/********** Start module 2: C:\Users\lukas\Documents\screeps-starter-master\src\room\index.js **********/
+/********** End of module 1: C:\Users\lukas\Desktop\screepsKI\src\creeps\index.js **********/
+/********** Start module 2: C:\Users\lukas\Desktop\screepsKI\src\room\index.js **********/
 __modules[2] = function(module, exports) {
 let roomLogic = {
     spawning:     __require(6,2),
@@ -97,16 +97,16 @@ let roomLogic = {
 module.exports = roomLogic;
 return module.exports;
 }
-/********** End of module 2: C:\Users\lukas\Documents\screeps-starter-master\src\room\index.js **********/
-/********** Start module 3: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\index.js **********/
+/********** End of module 2: C:\Users\lukas\Desktop\screepsKI\src\room\index.js **********/
+/********** Start module 3: C:\Users\lukas\Desktop\screepsKI\src\prototypes\index.js **********/
 __modules[3] = function(module, exports) {
 let files = {
     creep: __require(7,3)
 }
 return module.exports;
 }
-/********** End of module 3: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\index.js **********/
-/********** Start module 4: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\harvester.js **********/
+/********** End of module 3: C:\Users\lukas\Desktop\screepsKI\src\prototypes\index.js **********/
+/********** Start module 4: C:\Users\lukas\Desktop\screepsKI\src\creeps\harvester.js **********/
 __modules[4] = function(module, exports) {
 var harvester = {
 
@@ -117,24 +117,10 @@ var harvester = {
             if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(sources[0]);
             }
-        } else {
+        }
+        else {
+            creep.sayHello(creep);
             
-            var target = creep.room.find(FIND_STRUCTURES, {
-                filter: (s) => {
-                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION)
-                    && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                
-                }
-            });
-            console.log(creep.name + " Abgabeort: " + target[0])
-            if(target.length > 0){
-                if(creep.transfer(target[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target[0]);
-                }
-            } else if (creep.store[RESOURCE_ENERGY] != 0){
-                creep.memory.role = 'upgrader';
-                creep.memory.changedRole = true;
-            }
             
         }
     },
@@ -142,16 +128,14 @@ var harvester = {
         var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester' && creep.room.name == room.name);
         console.log('Harvesters: ' + harvesters.length, room.name);
 
-        var harvestersAsUpgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.memory.changedRole);
-
-        if (harvesters.length + harvestersAsUpgrader.length < 1) {
+        if (harvesters.length < 2) {
             return true;
-        } 
+        }
     },
     spawnData: function(room) {
             let name = 'Harvester' + Game.time;
             let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'harvester', building: false, changedRole: false};
+            let memory = {role: 'harvester'};
         
             return {name, body, memory};
     }
@@ -160,68 +144,37 @@ var harvester = {
 module.exports = harvester;
 return module.exports;
 }
-/********** End of module 4: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\harvester.js **********/
-/********** Start module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\upgrader.js **********/
+/********** End of module 4: C:\Users\lukas\Desktop\screepsKI\src\creeps\harvester.js **********/
+/********** Start module 5: C:\Users\lukas\Desktop\screepsKI\src\creeps\upgrader.js **********/
 __modules[5] = function(module, exports) {
 var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0){
-            creep.say("harvester");
-            creep.memory.building = false;
-        }
-
-        if(!creep.memory.building && creep.store.getFreeCapacity() == 0){
-            creep.say("upgrade");
-            creep.memory.building = true;
-        }
-
-        if(creep.memory.building) {
-            var constructionTarget = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(constructionTarget.length > 0){
-                if(creep.build(constructionTarget[0]) == ERR_NOT_IN_RANGE){
-                    creep.moveTo(constructionTarget[0]);
-                }
-            } else {
-                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller);
-                }
-            }
-            
-        } else {
+        if(creep.store[RESOURCE_ENERGY] == 0) {
             var sources = creep.room.find(FIND_SOURCES);
             if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(sources[0]);
             }
         }
-        
-        var avalibleEnergy = Game.rooms[creep.room.name].energyAvailable;
-        var maxStorage = Game.rooms[creep.room.name].energyCapacityAvailable;
-        var freeStorage = maxStorage - avalibleEnergy;
-
-        console.log("avalibleEnergy: " + avalibleEnergy);
-        console.log("maxStorage: " + maxStorage);
-        console.log("freeStorage: " + freeStorage);
-        if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
-            creep.memory.building = false;
-            creep.memory.changedRole = false;
-            creep.memory.role = 'harvester';
+        else {
+            if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(creep.room.controller);
+            }
         }
-        
     },
     spawn: function(room) {
         var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room.name);
         console.log('Upgraders: ' + upgraders.length, room.name);
 
-        if (upgraders.length < 1) {
+        if (upgraders.length < 2) {
             return true;
         }
     },
     spawnData: function(room) {
             let name = 'Upgrader' + Game.time;
             let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'upgrader', building: false, changedRole: false};
+            let memory = {role: 'upgrader'};
         
             return {name, body, memory};
     }
@@ -230,40 +183,44 @@ var roleUpgrader = {
 module.exports = roleUpgrader;
 return module.exports;
 }
-/********** End of module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\upgrader.js **********/
-/********** Start module 6: C:\Users\lukas\Documents\screeps-starter-master\src\room\spawning.js **********/
+/********** End of module 5: C:\Users\lukas\Desktop\screepsKI\src\creeps\upgrader.js **********/
+/********** Start module 6: C:\Users\lukas\Desktop\screepsKI\src\room\spawning.js **********/
 __modules[6] = function(module, exports) {
 let creepLogic = __require(1,6);
 let creepTypes = _.keys(creepLogic);
 
 function spawnCreeps(room) {
     _.forEach(creepTypes, type => console.log(type));
-    let creepTypeNeeded = _.find(creepTypes, function(type) {
+    /* let creepTypeNeeded = _.find(creepTypes, function(type) {
         return creepLogic[type].spawn(room);
     });
-    let creepSpawnData = creepLogic[creepTypeNeeded] && creepLogic[creepTypeNeeded].spawnData(room);
-    console.log(room, JSON.stringify(creepSpawnData));
+    console.log("creepTypeNeeded");
+    console.log(creepTypeNeeded); */
+    let creepSpawnData = creepLogic['harvester'] && creepLogic['harvester'].spawnData(room);
+    /* console.log(room, JSON.stringify(creepSpawnData)); */
 
     if (creepSpawnData) {
         let spawn = room.find(FIND_MY_SPAWNS)[0];
         let result = spawn.spawnCreep(creepSpawnData.body, creepSpawnData.name, {memory: creepSpawnData.memory});
     
-        console.log("Tried to Spawn:", creepTypeNeeded, result)
+        console.log("Tried to Spawn:", 'harvester', result)
     }
 }
 
 module.exports = spawnCreeps;
 return module.exports;
 }
-/********** End of module 6: C:\Users\lukas\Documents\screeps-starter-master\src\room\spawning.js **********/
-/********** Start module 7: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\creep.js **********/
+/********** End of module 6: C:\Users\lukas\Desktop\screepsKI\src\room\spawning.js **********/
+/********** Start module 7: C:\Users\lukas\Desktop\screepsKI\src\prototypes\creep.js **********/
 __modules[7] = function(module, exports) {
-Creep.prototype.sayHello = function sayHello() {
-    this.say("Hello", true);
+Creep.prototype.sayHello = function sayHello(creep) {
+    if(creep.transfer(Game.spawns['Spawn1'], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(Game.spawns['Spawn1']);
+    }
 }
 return module.exports;
 }
-/********** End of module 7: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\creep.js **********/
+/********** End of module 7: C:\Users\lukas\Desktop\screepsKI\src\prototypes\creep.js **********/
 /********** Footer **********/
 if(typeof module === "object")
 	module.exports = __require(0);

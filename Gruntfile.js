@@ -25,8 +25,7 @@ module.exports = function (grunt) {
 				filter:  'isFile',
 				cwd:     'dist/',
 				src:     '**',
-				dest:    'C:/Users/lukas/AppData/Local/Screeps/scripts/screeps.com/EigeneKI_V0.0.1'
-				
+				dest:    'C:/Users/lukas/AppData/Local/Screeps/scripts/screeps.com/Repo'
 			},
 		},
 	});
