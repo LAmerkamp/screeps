@@ -144,7 +144,7 @@ var harvester = {
 
         var harvestersAsUpgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.memory.changedRole);
 
-        if (harvesters.length + harvestersAsUpgrader.length < 2) {
+        if (harvesters.length + harvestersAsUpgrader.length < 1) {
             return true;
         } 
     },
@@ -203,7 +203,7 @@ var roleUpgrader = {
         console.log("avalibleEnergy: " + avalibleEnergy);
         console.log("maxStorage: " + maxStorage);
         console.log("freeStorage: " + freeStorage);
-        if((maxStorage/10 < freeStorage || avalibleEnergy <= 300) && creep.memory.changedRole){
+        if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
             creep.memory.building = false;
             creep.memory.changedRole = false;
             creep.memory.role = 'harvester';
@@ -214,7 +214,7 @@ var roleUpgrader = {
         var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.room.name == room.name);
         console.log('Upgraders: ' + upgraders.length, room.name);
 
-        if (upgraders.length < 2) {
+        if (upgraders.length < 1) {
             return true;
         }
     },

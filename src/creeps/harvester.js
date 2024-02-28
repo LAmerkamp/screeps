@@ -37,7 +37,7 @@ var harvester = {
 
         var harvestersAsUpgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader' && creep.memory.changedRole);
 
-        if (harvesters.length + harvestersAsUpgrader.length < 2) {
+        if (harvesters.length + harvestersAsUpgrader.length < 1) {
             return true;
         } 
     },
