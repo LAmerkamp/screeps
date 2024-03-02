@@ -101,9 +101,10 @@ return module.exports;
 /********** Start module 3: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\index.js **********/
 __modules[3] = function(module, exports) {
 let files = {
-    storeEnerrgy: __require(7,3),
+    storeEnergy: __require(7,3),
     harvesting: __require(8,3),
-    upgradingController: __require(9,3)
+    upgradingController: __require(9,3),
+    buildConstructions: __require(10,3)
 }
 return module.exports;
 }
@@ -118,13 +119,27 @@ var harvester = {
             creep.harvesting();
         }
         else {
-            creep.transferEnergy();
+            var target = creep.room.find(FIND_STRUCTURES, {
+                filter: (s) => {
+                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION)
+                    && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                
+                }
+            });
+            console.log(creep.name + " Abgabeort: " + target[0])
+            if(target.length > 0){
+                creep.transferEnergy(target[0]);
+            } else if (creep.store[RESOURCE_ENERGY] != 0){
+                creep.memory.role = 'upgrader';
+                creep.memory.changedRole = true;
+            }
+            
         }
     },
     spawnData: function(room) {
             let name = 'Harvester' + Game.time;
             let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'harvester'};
+            let memory = {role: 'harvester', changedRole: false, building: false};
         
             return {name, body, memory};
     }
@@ -140,17 +155,46 @@ var roleUpgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if(creep.store[RESOURCE_ENERGY] == 0) {
+        if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
+            creep.say('harvester');
+            creep.memory.building = false;
+            
+        }
+        if(!creep.memory.building && creep.store.getFreeCapacity() == 0){
+            creep.say('upgrade');
+            creep.memory.building = true;
+        }
+
+        if(creep.memory.building){
+            var contstructionTarget = creep.room.find(FIND_CONSTRUCTION_SITES);
+            if (contstructionTarget.length > 0){
+                creep.buildConstructions(contstructionTarget);
+            } else {
+                creep.upgradingController();
+            }
+            
+        }else {
             creep.harvesting();
         }
-        else {
-            creep.upgradingController();
+        
+        var avalibleEnergy = Game.rooms[creep.room.name].energyAvailable;
+        var maxStorage = Game.rooms[creep.room.name].energyCapacityAvailable;
+        var freeStorage = maxStorage - avalibleEnergy;
+
+        console.log("avalibleEnergy: " + avalibleEnergy);
+        console.log("maxStorage: " + maxStorage);
+        console.log("freeStorage: " + freeStorage);
+        if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
+            creep.memory.building = false;
+            creep.memory.changedRole = false;
+            creep.memory.role = 'harvester';
         }
+
     },
     spawnData: function(room) {
             let name = 'Upgrader' + Game.time;
             let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'upgrader'};
+            let memory = {role: 'upgrader', changedRole: false, building: false};
         
             return {name, body, memory};
     }
@@ -168,6 +212,21 @@ let creepTypes = _.keys(creepLogic);
 function spawnCreeps(room) {
     _.forEach(creepTypes, type => console.log(type));
     let creepSpawnData;
+    let spawnStage = 1;
+    if(spawnStage == 1){
+        var harvester = _.filter(Game.creeps, (c) => (c.memory.role == 'harvester' && c.room.name == room.name) 
+            || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
+
+        var upgrader = _.filter(Game.creeps, (c) => c.memory.role == 'upgrader' && c.room.name == room.name);
+
+        console.log("harvester: " + harvester.length + " - upgrader: " + upgrader.length);
+        if(harvester.length < 2) {
+            creepSpawnData = creepLogic['harvester'] && creepLogic['harvester'].spawnData(room);
+        }else if (upgrader.length < 2) {
+            creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
+        }
+
+    }
     /* console.log(room, JSON.stringify(creepSpawnData)); */
 
     if (creepSpawnData) {
@@ -182,16 +241,17 @@ module.exports = spawnCreeps;
 return module.exports;
 }
 /********** End of module 6: C:\Users\lukas\Documents\screeps-starter-master\src\room\spawning.js **********/
-/********** Start module 7: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\storeEnergy.js **********/
+/********** Start module 7: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\store_energy.js **********/
 __modules[7] = function(module, exports) {
-Creep.prototype.transferEnergy = function transferEnergy() {
-    if(this.transfer(Game.spawns['Spawn1'], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-        this.moveTo(Game.spawns['Spawn1']);
+Creep.prototype.transferEnergy = function transferEnergy(target) {
+    console.log("target: " + target);
+    if(this.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        this.moveTo(target);
     }
 }
 return module.exports;
 }
-/********** End of module 7: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\storeEnergy.js **********/
+/********** End of module 7: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\store_energy.js **********/
 /********** Start module 8: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\harvesting.js **********/
 __modules[8] = function(module, exports) {
 Creep.prototype.harvesting = function harvesting(){
@@ -203,7 +263,7 @@ Creep.prototype.harvesting = function harvesting(){
 return module.exports;
 }
 /********** End of module 8: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\harvesting.js **********/
-/********** Start module 9: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\upgradingController.js **********/
+/********** Start module 9: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\upgrading_controller.js **********/
 __modules[9] = function(module, exports) {
 Creep.prototype.upgradingController = function upgradingController(){
     if(this.upgradeController(this.room.controller) == ERR_NOT_IN_RANGE) {
@@ -212,7 +272,17 @@ Creep.prototype.upgradingController = function upgradingController(){
 }
 return module.exports;
 }
-/********** End of module 9: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\upgradingController.js **********/
+/********** End of module 9: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\upgrading_controller.js **********/
+/********** Start module 10: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\build_constructions.js **********/
+__modules[10] = function(module, exports) {
+Creep.prototype.buildConstactions = function buildConstactions(target){
+    if (this.build(target[0] == ERR_NOT_IN_RANGE)){
+        this.moveTo(target[0]);
+    }
+}
+return module.exports;
+}
+/********** End of module 10: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\build_constructions.js **********/
 /********** Footer **********/
 if(typeof module === "object")
 	module.exports = __require(0);

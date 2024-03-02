@@ -1,5 +1,6 @@
 let files = {
-    storeEnerrgy: require("./storeEnergy"),
+    storeEnergy: require("./store_energy"),
     harvesting: require("./harvesting"),
-    upgradingController: require("./upgradingController")
+    upgradingController: require("./upgrading_controller"),
+    buildConstructions: require('./build_constructions')
 }

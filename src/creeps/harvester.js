@@ -6,7 +6,21 @@ var harvester = {
             creep.harvesting();
         }
         else {
-            creep.transferEnergy();
+            var target = creep.room.find(FIND_STRUCTURES, {
+                filter: (s) => {
+                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION)
+                    && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                
+                }
+            });
+            console.log(creep.name + " Abgabeort: " + target[0])
+            if(target.length > 0){
+                creep.transferEnergy(target[0]);
+            } else if (creep.store[RESOURCE_ENERGY] != 0){
+                creep.memory.role = 'upgrader';
+                creep.memory.changedRole = true;
+            }
+            
         }
     },
     // checks if the room needs to spawn a creep
@@ -16,7 +30,7 @@ var harvester = {
     spawnData: function(room) {
             let name = 'Harvester' + Game.time;
             let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'harvester'};
+            let memory = {role: 'harvester', changedRole: false, building: false};
         
             return {name, body, memory};
     }

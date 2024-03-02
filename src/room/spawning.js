@@ -8,8 +8,23 @@ function spawnCreeps(room) {
 
     // get the data for spawning a new creep of creepTypeNeeded
     let creepSpawnData;
-    //let creepSpawnData = creepLogic['harvester'] && creepLogic['harvester'].spawnData(room);
-    //let creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
+    let spawnStage = 1;
+    if(spawnStage == 1){
+        var harvester = _.filter(Game.creeps, (c) => (c.memory.role == 'harvester' && c.room.name == room.name) 
+            || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
+
+        var upgrader = _.filter(Game.creeps, (c) => c.memory.role == 'upgrader' && c.room.name == room.name);
+
+        console.log("harvester: " + harvester.length + " - upgrader: " + upgrader.length);
+        if(harvester.length < 2) {
+            creepSpawnData = creepLogic['harvester'] && creepLogic['harvester'].spawnData(room);
+        }else if (upgrader.length < 2) {
+            creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
+        }
+
+    }
+    
+    //
     /* console.log(room, JSON.stringify(creepSpawnData)); */
 
     if (creepSpawnData) {
