@@ -55,7 +55,7 @@ var starter = {
         let memory = {role: 'starter', changedRole: false, building: false, resourceSpot: targetId};
     
         return {name, body, memory};
-}
+    }
 };
 
 module.exports = starter;

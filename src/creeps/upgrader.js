@@ -22,9 +22,6 @@ var roleUpgrader = {
         var maxStorage = Game.rooms[creep.room.name].energyCapacityAvailable;
         var freeStorage = maxStorage - avalibleEnergy;
 
-        console.log("avalibleEnergy: " + avalibleEnergy);
-        console.log("maxStorage: " + maxStorage);
-        console.log("freeStorage: " + freeStorage);
         if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
             creep.memory.building = false;
             creep.changeRole('starter', false);
