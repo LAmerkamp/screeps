@@ -105,7 +105,8 @@ let files = {
     storeEnergy: __require(8,3),
     harvesting: __require(9,3),
     upgradingController: __require(10,3),
-    upgeradeContollerOrBuild: __require(11,3)
+    upgeradeContollerOrBuild: __require(11,3),
+    changeRole: __require(12,3)
 }
 return module.exports;
 }
@@ -116,18 +117,13 @@ var starter = {
     /** @param {Creep} creep **/
     run: function (creep) {
 
-        var upgraders = _.filter(Game.creeps, (ce) => ce.memory.role == 'upgrader');
-        console.log("upgreader ist da!: " + upgraders.length);
+        /*var upgraders = _.filter(Game.creeps, (ce) => ce.memory.role == 'upgrader');
         if(upgraders.length == 1){
-            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'/*  || (c.memory.role == 'upgrader' && c.memory.changedRole) */) && c.memory.resourceSpot == creep.memory.resourceSpot);
-            
-            console.log("sameTargetCreep!!!!: " + sameTargetCreep.length);
+            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'  || (c.memory.role == 'upgrader' && c.memory.changedRole) ) && c.memory.resourceSpot == creep.memory.resourceSpot);
             if(sameTargetCreep.length == 2){
-                sameTargetCreep[0].memory.role = 'upgrader';
-                sameTargetCreep[0].memory.changedRole = true;
+                sameTargetCreep[0].changeRole('upgrader', true);
             }
-
-        }
+        }*/
 
         if(creep.store.getFreeCapacity() > 0) {
             creep.harvesting();
@@ -140,19 +136,18 @@ var starter = {
                 
                 }
             });
-            console.log(creep.name + " Abgabeort: " + target[0])
+            
             if(target.length > 0){
                 creep.transferEnergy(target[0]);
             } else if (creep.store[RESOURCE_ENERGY] != 0){
-                creep.memory.role = 'upgrader';
-                creep.memory.changedRole = true;
+                creep.changeRole('upgrader', true);
             }
             
         }
     },
 
     spawnData: function(room) {
-        var starter = _.filter(Game.creeps, (creep) => creep.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
+        var starter = _.filter(Game.creeps, (c) => c.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
         var target = room.find(FIND_SOURCES);
         var targetId = "fakeID";
 
@@ -166,9 +161,9 @@ var starter = {
         if(target.length > 0){
             targetId = target[0].id;
         }
-        if(starter.length == 1){
+        /* if(starter.length == 1){
             targetId = starter[0].memory.resourceSpot;
-        }
+        } */
 
         let name = 'starter' + Game.time;
         let body = [WORK, CARRY, MOVE];
@@ -237,14 +232,7 @@ var roleUpgrader = {
         }
 
         if(creep.memory.building){
-            /* var constructionTarget = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(constructionTarget.length > 0){
-                creep.upgeradeContollerOrBuild(constructionTarget[0]);
-            } else {
-                creep.upgradingController();
-            } */
             creep.upgeradeContollerOrBuild();
-            
         }else {
             creep.harvesting();
         }
@@ -258,17 +246,32 @@ var roleUpgrader = {
         console.log("freeStorage: " + freeStorage);
         if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
             creep.memory.building = false;
-            creep.memory.changedRole = false;
-            creep.memory.role = 'starter';
+            creep.changeRole('starter', false);
         }
 
     },
     spawnData: function(room) {
-            let name = 'Upgrader' + Game.time;
-            let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'upgrader', changedRole: false, building: false};
+        var upgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
+
+        var target = room.find(FIND_SOURCES);
+        var targetId = "fakeID";
+
+        for(var i = 0; i < upgrader.length; i++){
+            for(var n = 0; n < target.length; n++){
+                if(upgrader[i].memory.resourceSpot == target[n].id){
+                    target.splice(n, 1);
+                }
+            } 
+        }
+        if(target.length > 0){
+            targetId = target[0].id;
+        }
+
+        let name = 'Upgrader' + Game.time;
+        let body = [WORK, CARRY, MOVE];
+        let memory = {role: 'upgrader', changedRole: false, building: false, resourceSpot: targetId};
         
-            return {name, body, memory};
+        return {name, body, memory};
     }
 };
 
@@ -285,21 +288,25 @@ function spawnCreeps(room) {
     _.forEach(creepTypes, type => console.log(type));
     let creepSpawnData;
     let spawnStage = 1;
-    if(spawnStage == 1){
+
+    var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
+    if(enemyTarget > 0){
+        
+    }
+
+    else if(spawnStage == 1){
         var starter = _.filter(Game.creeps, (c) => (c.memory.role == 'starter' && c.room.name == room.name) 
             || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
 
         var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name) || (c.memory.role == 'starter' && c.memory.changedRole == true && c.room.name == room.name));
 
-        if(starter.length < room.find(FIND_SOURCES).length+1) {
+        if(starter.length < room.find(FIND_SOURCES).length && starter.length <= upgrader.length) {
             creepSpawnData = creepLogic['starter'] && creepLogic['starter'].spawnData(room);
-        }else if (upgrader.length < 2) {
+        }else if (upgrader.length < room.find(FIND_SOURCES).length) {
             creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
         }
-
     }
-    
-    
+
     /* console.log(room, JSON.stringify(creepSpawnData)); */
 
     if (creepSpawnData) {
@@ -328,9 +335,15 @@ return module.exports;
 /********** Start module 9: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\harvesting.js **********/
 __modules[9] = function(module, exports) {
 Creep.prototype.harvesting = function harvesting(){
-    var sources = this.room.find(FIND_SOURCES);
-    if(this.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-        this.moveTo(sources[0]);
+    /* var source = this.room.find(FIND_SOURCES, {
+        filter: (s) => {
+            s.id == this.memory.resourceSpot;
+        }
+    }); */
+    const target = Game.getObjectById(this.memory.resourceSpot);
+    console.log("target:" + target);
+    if(this.harvest(target) == ERR_NOT_IN_RANGE) {
+        this.moveTo(target);
     }
 } 
 return module.exports;
@@ -362,6 +375,15 @@ Creep.prototype.upgeradeContollerOrBuild = function upgeradeContollerOrBuild(){
 return module.exports;
 }
 /********** End of module 11: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\build_constructions.js **********/
+/********** Start module 12: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\change_role.js **********/
+__modules[12] = function(module, exports) {
+Creep.prototype.changeRole = function changeRole(role, changeToSubRole){
+    this.memory.role = role;
+    this.memory.changedRole = changeToSubRole;
+}
+return module.exports;
+}
+/********** End of module 12: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\change_role.js **********/
 /********** Footer **********/
 if(typeof module === "object")
 	module.exports = __require(0);

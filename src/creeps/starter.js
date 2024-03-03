@@ -2,18 +2,13 @@ var starter = {
     /** @param {Creep} creep **/
     run: function (creep) {
 
-        var upgraders = _.filter(Game.creeps, (ce) => ce.memory.role == 'upgrader');
-        console.log("upgreader ist da!: " + upgraders.length);
+        /*var upgraders = _.filter(Game.creeps, (ce) => ce.memory.role == 'upgrader');
         if(upgraders.length == 1){
-            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'/*  || (c.memory.role == 'upgrader' && c.memory.changedRole) */) && c.memory.resourceSpot == creep.memory.resourceSpot);
-            
-            console.log("sameTargetCreep!!!!: " + sameTargetCreep.length);
+            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'  || (c.memory.role == 'upgrader' && c.memory.changedRole) ) && c.memory.resourceSpot == creep.memory.resourceSpot);
             if(sameTargetCreep.length == 2){
-                sameTargetCreep[0].memory.role = 'upgrader';
-                sameTargetCreep[0].memory.changedRole = true;
+                sameTargetCreep[0].changeRole('upgrader', true);
             }
-
-        }
+        }*/
 
         if(creep.store.getFreeCapacity() > 0) {
             creep.harvesting();
@@ -26,19 +21,18 @@ var starter = {
                 
                 }
             });
-            console.log(creep.name + " Abgabeort: " + target[0])
+            
             if(target.length > 0){
                 creep.transferEnergy(target[0]);
             } else if (creep.store[RESOURCE_ENERGY] != 0){
-                creep.memory.role = 'upgrader';
-                creep.memory.changedRole = true;
+                creep.changeRole('upgrader', true);
             }
             
         }
     },
 
     spawnData: function(room) {
-        var starter = _.filter(Game.creeps, (creep) => creep.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
+        var starter = _.filter(Game.creeps, (c) => c.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
         var target = room.find(FIND_SOURCES);
         var targetId = "fakeID";
 
@@ -52,9 +46,9 @@ var starter = {
         if(target.length > 0){
             targetId = target[0].id;
         }
-        if(starter.length == 1){
+        /* if(starter.length == 1){
             targetId = starter[0].memory.resourceSpot;
-        }
+        } */
 
         let name = 'starter' + Game.time;
         let body = [WORK, CARRY, MOVE];

@@ -13,14 +13,7 @@ var roleUpgrader = {
         }
 
         if(creep.memory.building){
-            /* var constructionTarget = creep.room.find(FIND_CONSTRUCTION_SITES);
-            if(constructionTarget.length > 0){
-                creep.upgeradeContollerOrBuild(constructionTarget[0]);
-            } else {
-                creep.upgradingController();
-            } */
             creep.upgeradeContollerOrBuild();
-            
         }else {
             creep.harvesting();
         }
@@ -34,19 +27,35 @@ var roleUpgrader = {
         console.log("freeStorage: " + freeStorage);
         if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
             creep.memory.building = false;
-            creep.memory.changedRole = false;
-            creep.memory.role = 'starter';
+            creep.changeRole('starter', false);
         }
 
     },
 
     // returns an object with the data to spawn a new creep
     spawnData: function(room) {
-            let name = 'Upgrader' + Game.time;
-            let body = [WORK, CARRY, MOVE];
-            let memory = {role: 'upgrader', changedRole: false, building: false};
+        var upgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
+        //var starterResourceSpot = _.filter(Game.creeps.memory.resourceSpot, (creep) => creep.memory.role == 'starter');
+
+        var target = room.find(FIND_SOURCES);
+        var targetId = "fakeID";
+
+        for(var i = 0; i < upgrader.length; i++){
+            for(var n = 0; n < target.length; n++){
+                if(upgrader[i].memory.resourceSpot == target[n].id){
+                    target.splice(n, 1);
+                }
+            } 
+        }
+        if(target.length > 0){
+            targetId = target[0].id;
+        }
+
+        let name = 'Upgrader' + Game.time;
+        let body = [WORK, CARRY, MOVE];
+        let memory = {role: 'upgrader', changedRole: false, building: false, resourceSpot: targetId};
         
-            return {name, body, memory};
+        return {name, body, memory};
     }
 };
 

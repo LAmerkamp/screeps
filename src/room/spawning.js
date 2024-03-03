@@ -8,21 +8,25 @@ function spawnCreeps(room) {
     // get the data for spawning a new creep of creepTypeNeeded
     let creepSpawnData;
     let spawnStage = 1;
-    if(spawnStage == 1){
+
+    var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
+    if(enemyTarget > 0){
+        
+    }
+
+    else if(spawnStage == 1){
         var starter = _.filter(Game.creeps, (c) => (c.memory.role == 'starter' && c.room.name == room.name) 
             || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
 
         var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name) || (c.memory.role == 'starter' && c.memory.changedRole == true && c.room.name == room.name));
 
-        if(starter.length < room.find(FIND_SOURCES).length+1) {
+        if(starter.length < room.find(FIND_SOURCES).length && starter.length <= upgrader.length) {
             creepSpawnData = creepLogic['starter'] && creepLogic['starter'].spawnData(room);
-        }else if (upgrader.length < 2) {
+        }else if (upgrader.length < room.find(FIND_SOURCES).length) {
             creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
         }
-
     }
-    
-    
+
     /* console.log(room, JSON.stringify(creepSpawnData)); */
 
     if (creepSpawnData) {
