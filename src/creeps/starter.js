@@ -38,9 +38,7 @@ var starter = {
 
         for(var i = 0; i < starter.length; i++){
             for(var n = 0; n < target.length; n++){
-
-                console.log((" HIER!!!!: " + Game.spawns['Spawn1'].memory.blockedSourceSpot))
-                if(starter[i].memory.resourceSpot == target[n].id || Game.spawns['Spawn1'].memory.blockedSourceSpot == target[n].id){
+                if(starter[i].memory.resourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 

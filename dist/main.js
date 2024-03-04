@@ -69,9 +69,9 @@ module.exports.loop = function () {
     }
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
-            if(Memory.creeps[name].role == 'starter' || Memory.creeps[name].role == 'upgrader'){
+            /* if(Memory.creeps[name].role == 'starter' || Memory.creeps[name].role == 'upgrader'){
               Game.spawns['Spawn1'].memory.blockedSourceSpot = Memory.creeps[name].resourceSpot;  
-            }
+            } */
             
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
@@ -111,7 +111,10 @@ let files = {
     harvesting: __require(10,3),
     upgradingController: __require(11,3),
     upgeradeContollerOrBuild: __require(12,3),
-    changeRole: __require(13,3)
+    changeRole: __require(13,3),
+    getRoomSources: __require(14,3),
+    getRoomHarvestingSpots: __require(15,3),
+    getTotalFreeHarvestingSpots: __require(16,3)
 }
 return module.exports;
 }
@@ -158,9 +161,7 @@ var starter = {
 
         for(var i = 0; i < starter.length; i++){
             for(var n = 0; n < target.length; n++){
-
-                console.log((" HIER!!!!: " + Game.spawns['Spawn1'].memory.blockedSourceSpot))
-                if(starter[i].memory.resourceSpot == target[n].id || Game.spawns['Spawn1'].memory.blockedSourceSpot == target[n].id){
+                if(starter[i].memory.resourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 
@@ -319,16 +320,21 @@ let creepLogic = __require(1,8);
 let creepTypes = _.keys(creepLogic);
 
 function spawnCreeps(room) {
-    _.forEach(creepTypes, type => console.log(type));
     let creepSpawnData;
-    let spawnStage = 1;
 
+    let spawnStage = 1;
+    let spawn = room.find(FIND_MY_SPAWNS)[0];
+    
+    if (!spawn.memory.actionExecuted) {
+        setSpawnMemory(spawn);
+        spawn.memory.actionExecuted = true;
+    }
     /* var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
     
     if(enemyTarget.length > 0){
         creepSpawnData = creepLogic['attacker'] && creepLogic['attacker'].spawnData(room);
     } */
-
+    
     if(spawnStage == 1){
         var starter = _.filter(Game.creeps, (c) => (c.memory.role == 'starter' && c.room.name == room.name) 
             || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
@@ -350,6 +356,17 @@ function spawnCreeps(room) {
     
         console.log("Tried to Spawn:", creepSpawnData.memory.role, result)
     }
+}
+
+function setSpawnMemory(spawn){
+        spawn.getRoomSources();
+        for(var i = 0; i < spawn.memory.roomSources.length; i++){
+            if(!spawn.memory.roomSources[i].freeHarvestingSpots){
+                spawn.getRoomHarvestingSpots(Game.getObjectById(spawn.memory.roomSources[i].id));
+            }
+        }
+        spawn.getTotalFreeHarvestingSpots();
+        spawn.memory.spawnStage = 0;
 }
 
 module.exports = spawnCreeps;
@@ -411,6 +428,69 @@ Creep.prototype.changeRole = function changeRole(role, changeToSubRole){
 return module.exports;
 }
 /********** End of module 13: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\change_role.js **********/
+/********** Start module 14: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\get_room_sources.js **********/
+__modules[14] = function(module, exports) {
+Spawn.prototype.getRoomSources = function getRoomSources(){
+    var a = [];
+    const sources = this.room.find(FIND_SOURCES);
+    for(var i = 0; i < sources.length; i++){
+        a.push({id: sources[i].id, freeHarvestingSpots: undefined});
+    }
+    this.memory.roomSources = a;
+    
+}
+return module.exports;
+}
+/********** End of module 14: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\get_room_sources.js **********/
+/********** Start module 15: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\get_room_harvesting_spots.js **********/
+__modules[15] = function(module, exports) {
+Spawn.prototype.getRoomHarvestingSpots = function getRoomHarvestingSpots(source){
+    const x = source.pos.x;
+    const y = source.pos.y;
+    var freeHarvestingSpots = 0;
+    const variations = [
+        [-1, -1], // Feld A
+        [0, -1], // Feld B
+        [1, -1], // Feld C
+        [-1, 0], // Feld D
+        [1, 0], // Feld E
+        [-1, 1], // Feld F
+        [0, 1], // Feld G
+        [1, 1] // Feld H
+    ];
+
+    const terrain = Game.map.getRoomTerrain(this.room.name);
+    for(let i = 0; i < variations.length; i++){
+        switch(terrain.get(x+variations[i][0], y + variations[i][1])) {
+            case 0:
+                freeHarvestingSpots++;
+                break;
+        }    
+    }
+    
+    for(let i = 0; i < this.memory.roomSources.length; i++){
+        if(this.memory.roomSources[i].id == source.id){
+            this.memory.roomSources[i].freeHarvestingSpots = freeHarvestingSpots;
+        }
+    }
+
+    
+}
+return module.exports;
+}
+/********** End of module 15: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\get_room_harvesting_spots.js **********/
+/********** Start module 16: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\get_total_room_harvesting_spots.js **********/
+__modules[16] = function(module, exports) {
+Spawn.prototype.getTotalFreeHarvestingSpots = function getTotalFreeHarvestingSpots(){
+    let sum = 0;
+    for(var i = 0; i < this.memory.roomSources.length; i++){
+        sum += this.memory.roomSources[i].freeHarvestingSpots;
+    }
+    this.memory.totalFreeHarvestingSpots = sum;
+}
+return module.exports;
+}
+/********** End of module 16: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\get_total_room_harvesting_spots.js **********/
 /********** Footer **********/
 if(typeof module === "object")
 	module.exports = __require(0);
