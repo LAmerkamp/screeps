@@ -39,7 +39,7 @@ var roleUpgrader = {
 
         for(var i = 0; i < upgrader.length; i++){
             for(var n = 0; n < target.length; n++){
-                if(upgrader[i].memory.resourceSpot == target[n].id){
+                if(upgrader[i].memory.resourceSpot == target[n].id || Game.spawns['Spawn1'].memory.blockedSourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 

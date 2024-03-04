@@ -9,13 +9,13 @@ function spawnCreeps(room) {
     let creepSpawnData;
     let spawnStage = 1;
 
-    var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
+    /* var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
     
     if(enemyTarget.length > 0){
         creepSpawnData = creepLogic['attacker'] && creepLogic['attacker'].spawnData(room);
-    }
+    } */
 
-    else if(spawnStage == 1){
+    if(spawnStage == 1){
         var starter = _.filter(Game.creeps, (c) => (c.memory.role == 'starter' && c.room.name == room.name) 
             || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
 

@@ -69,6 +69,10 @@ module.exports.loop = function () {
     }
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
+            if(Memory.creeps[name].role == 'starter' || Memory.creeps[name].role == 'upgrader'){
+              Game.spawns['Spawn1'].memory.blockedSourceSpot = Memory.creeps[name].resourceSpot;  
+            }
+            
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }
@@ -132,7 +136,7 @@ var starter = {
         else {
             var target = creep.room.find(FIND_STRUCTURES, {
                 filter: (s) => {
-                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION)
+                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_CONTAINER)
                     && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 
                 }
@@ -154,7 +158,9 @@ var starter = {
 
         for(var i = 0; i < starter.length; i++){
             for(var n = 0; n < target.length; n++){
-                if(starter[i].memory.resourceSpot == target[n].id){
+
+                console.log((" HIER!!!!: " + Game.spawns['Spawn1'].memory.blockedSourceSpot))
+                if(starter[i].memory.resourceSpot == target[n].id || Game.spawns['Spawn1'].memory.blockedSourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 
@@ -256,7 +262,7 @@ var roleUpgrader = {
 
         for(var i = 0; i < upgrader.length; i++){
             for(var n = 0; n < target.length; n++){
-                if(upgrader[i].memory.resourceSpot == target[n].id){
+                if(upgrader[i].memory.resourceSpot == target[n].id || Game.spawns['Spawn1'].memory.blockedSourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 
@@ -317,13 +323,13 @@ function spawnCreeps(room) {
     let creepSpawnData;
     let spawnStage = 1;
 
-    var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
+    /* var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
     
     if(enemyTarget.length > 0){
         creepSpawnData = creepLogic['attacker'] && creepLogic['attacker'].spawnData(room);
-    }
+    } */
 
-    else if(spawnStage == 1){
+    if(spawnStage == 1){
         var starter = _.filter(Game.creeps, (c) => (c.memory.role == 'starter' && c.room.name == room.name) 
             || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
 

@@ -16,7 +16,7 @@ var starter = {
         else {
             var target = creep.room.find(FIND_STRUCTURES, {
                 filter: (s) => {
-                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION)
+                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_CONTAINER)
                     && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 
                 }
@@ -38,7 +38,9 @@ var starter = {
 
         for(var i = 0; i < starter.length; i++){
             for(var n = 0; n < target.length; n++){
-                if(starter[i].memory.resourceSpot == target[n].id){
+
+                console.log((" HIER!!!!: " + Game.spawns['Spawn1'].memory.blockedSourceSpot))
+                if(starter[i].memory.resourceSpot == target[n].id || Game.spawns['Spawn1'].memory.blockedSourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 
