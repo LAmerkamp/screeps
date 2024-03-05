@@ -24,7 +24,7 @@ module.exports.loop = function () {
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
             /* if(Memory.creeps[name].role == 'starter' || Memory.creeps[name].role == 'upgrader'){
-              Game.spawns['Spawn1'].memory.blockedSourceSpot = Memory.creeps[name].resourceSpot;  
+              Game.spawns['Spawn1'].memory.blockedSourceSpot = Memory.creeps[name].sourceSpot;  
             } */
             
             delete Memory.creeps[name];

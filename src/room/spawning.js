@@ -6,31 +6,29 @@ function spawnCreeps(room) {
     //_.forEach(creepTypes, type => console.log(type));
 
     // get the data for spawning a new creep of creepTypeNeeded
-    let creepSpawnData;
-
-    let spawnStage = 1;
+    
     let spawn = room.find(FIND_MY_SPAWNS)[0];
     
     if (!spawn.memory.actionExecuted) {
         setSpawnMemory(spawn);
         spawn.memory.actionExecuted = true;
     }
-    /* var enemyTarget = room.find(FIND_HOSTILE_CREEPS);
-    
-    if(enemyTarget.length > 0){
-        creepSpawnData = creepLogic['attacker'] && creepLogic['attacker'].spawnData(room);
-    } */
-    
-    if(spawnStage == 1){
-        var starter = _.filter(Game.creeps, (c) => (c.memory.role == 'starter' && c.room.name == room.name) 
-            || (c.memory.role == 'upgrader' && c.memory.changedRole == true && c.room.name == room.name));
 
-        var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name) || (c.memory.role == 'starter' && c.memory.changedRole == true && c.room.name == room.name));
+    let creepSpawnData;
+    let spawnStage = spawn.memory.spawnStage;
+    
+    if(spawnStage == 0){ //2.Generation werden nunoch upgrader gespawned BEHEBEN!
+        var starter = _.filter(Game.creeps, (c) => ((c.memory.role == 'starter' && c.room.name == room.name) || (c.memory.role == 'upgrader' && c.room.name == room.name))
+                && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id); 
+                
+        if(starter.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots) {
+            creepSpawnData = creepLogic['starter'] && creepLogic['starter'].spawnData(spawn);
+        } else if (starter.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots+1) {
+            creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(spawn);
+        }
 
-        if(starter.length < room.find(FIND_SOURCES).length && starter.length <= upgrader.length) {
-            creepSpawnData = creepLogic['starter'] && creepLogic['starter'].spawnData(room);
-        }else if (upgrader.length < room.find(FIND_SOURCES).length) {
-            creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(room);
+        if(starter.length >= spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots+1){
+            spawn.setSourceSelection(spawn.memory.sourceSelection+1);
         }
     }
 
@@ -54,6 +52,12 @@ function setSpawnMemory(spawn){
         }
         spawn.getTotalFreeHarvestingSpots();
         spawn.memory.spawnStage = 0;
+        spawn.memory.sourceSelection = spawn.memory.roomSources.length > 0 ? 0 : null;
+}
+
+function checkSourceSelection(spawn){
+    let creepSpawnData;
+    
 }
 
 module.exports = spawnCreeps;

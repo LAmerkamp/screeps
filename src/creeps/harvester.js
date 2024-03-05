@@ -12,14 +12,14 @@ var harvester = {
         var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
         var target = room.find(FIND_SOURCES, {
             filter: (source) => {
-                    source != harvesters.memory.resourceSpot;
+                    source != harvesters.memory.sourceSpot;
             }
         });
 
         /* for(var i = 0; i < harvesters.length; i++){
             target = room.find(FIND_SOURCES, {
                 filter: (source) => {
-                        source != target[i].memory.resourceSpot;
+                        source != target[i].memory.sourceSpot;
                 }
             });
             
@@ -28,7 +28,7 @@ var harvester = {
 
         let name = 'Harvester' + Game.time;
         let body = [WORK, WORK, WORK, MOVE];
-        let memory = {role: 'harvester', resourceSpot: ''};
+        let memory = {role: 'harvester', sourceSpot: ''};
         
          return {name, body, memory};
     }

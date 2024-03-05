@@ -4,7 +4,7 @@ var starter = {
 
         /*var upgraders = _.filter(Game.creeps, (ce) => ce.memory.role == 'upgrader');
         if(upgraders.length == 1){
-            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'  || (c.memory.role == 'upgrader' && c.memory.changedRole) ) && c.memory.resourceSpot == creep.memory.resourceSpot);
+            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'  || (c.memory.role == 'upgrader' && c.memory.changedRole) ) && c.memory.sourceSpot == creep.memory.sourceSpot);
             if(sameTargetCreep.length == 2){
                 sameTargetCreep[0].changeRole('upgrader', true);
             }
@@ -31,14 +31,15 @@ var starter = {
         }
     },
 
-    spawnData: function(room) {
-        var starter = _.filter(Game.creeps, (c) => c.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
+    spawnData: function(spawn) {
+        var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
+        /*var starter = _.filter(Game.creeps, (c) => c.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
         var target = room.find(FIND_SOURCES);
-        var targetId = "fakeID";
+        
 
         for(var i = 0; i < starter.length; i++){
             for(var n = 0; n < target.length; n++){
-                if(starter[i].memory.resourceSpot == target[n].id){
+                if(starter[i].memory.sourceSpot == target[n].id){
                     target.splice(n, 1);
                 }
             } 
@@ -46,13 +47,13 @@ var starter = {
         if(target.length > 0){
             targetId = target[0].id;
         }
-        /* if(starter.length == 1){
-            targetId = starter[0].memory.resourceSpot;
+         if(starter.length == 1){
+            targetId = starter[0].memory.sourceSpot;
         } */
 
         let name = 'starter' + Game.time;
         let body = [WORK, CARRY, MOVE];
-        let memory = {role: 'starter', changedRole: false, building: false, resourceSpot: targetId};
+        let memory = {role: 'starter', changedRole: false, building: false, sourceSpot: targetId};
     
         return {name, body, memory};
     }
