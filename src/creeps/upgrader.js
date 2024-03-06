@@ -1,4 +1,4 @@
-var roleUpgrader = {
+var upgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -6,34 +6,41 @@ var roleUpgrader = {
         var maxStorage = Game.rooms[creep.room.name].energyCapacityAvailable;
         var freeStorage = maxStorage - avalibleEnergy;
 
+
         if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
-            creep.say('harvesting');
+            creep.say('get Energy');
             creep.memory.building = false;
+            if(creep.memory.changedRole){
+                creep.say("werde zu harvester");
+                creep.memory.storeEnergy = false;
+                creep.changeRole('basicHarveste', false);
+            } else if(freeStorage == 0){
+                creep.memory.sourceQuelle = 'structure';
+            }
         }
         if(!creep.memory.building && creep.store.getFreeCapacity() == 0){
             creep.say('upgrade');
             creep.memory.building = true;
         }
 
+
+
         if(creep.memory.building){
-            if(creep.memory.changedRole && freeStorage > creep.store[RESOURCE_ENERGY]){
-                creep.memory.building = false;
+            if(creep.memory.changedRole && freeStorage > avalibleEnergy){
+                creep.say("werde zu harvester");
                 creep.memory.storeEnergy = true;
                 creep.changeRole('basicHarveste', false);
             }
             creep.upgeradeContollerOrBuild();
-            if(creep.memory.sourceQuelle == 'structure' && (avalibleEnergy < 100 || creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep)){
-                creep.memory.sourceQuelle = 'source';
-            } else if (creep.memory.sourceQuelle == 'source' && freeStorage == 0 && !creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep){
-                creep.memory.sourceQuelle = 'structure';
-            }
-        }else {
-            if(creep.memory.sourceQuelle == 'source' || !creep.memory.sourceQuelle){
+        } else {
+            if(creep.memory.sourceQuelle == 'source'){
                 creep.harvesting();
-            }else if(creep.memory.sourceQuelle == 'structure'){
+            } else if(creep.memory.sourceQuelle == 'structure'){
                 creep.takeEnergyFromSpawn();
+                if(freeStorage > avalibleEnergy){
+                    creep.memory.sourceQuelle = 'source';
+                }
             }
-            
         }
 
     },
@@ -42,13 +49,31 @@ var roleUpgrader = {
     spawnData: function(spawn) {
         var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
 
+        var maxSpawnStorage = spawn.room.energyCapacityAvailable;
+
+        let maxValueForWork = Math.trunc((maxSpawnStorage / 2) / 100);
+        let maxValueForCarry = Math.trunc((maxSpawnStorage /4 ) / 50);
+        let maxValueForMove = Math.trunc((maxSpawnStorage / 4) / 50);
+
+        let rest = maxSpawnStorage - maxValueForWork*100 - maxValueForCarry*50 - maxValueForMove*50;
+        if(rest > 100){
+            maxValueForCarry++;
+            maxValueForMove++;
+        } else if(rest >= 50){
+            maxValueForMove++;
+        }
+        if(maxValueForWork + maxValueForCarry + maxValueForMove > 50 ){
+            maxValueForWork = 20;
+            maxValueForCarry = 15;
+            maxValueForMove = 15;
+        }
         var bodyParts = [
-            [ 1, WORK ],
-            [ 1, CARRY ],
-            [ 1, MOVE ]
+            [ maxValueForWork, WORK ],
+            [ maxValueForCarry, CARRY ],
+            [ maxValueForMove, MOVE ]
         ];
         
-        let name = 'Upgrader' + Game.time;
+        let name = 'upgrader' + Game.time;
         let body = bodyParts.map(item => Array(item[0]).fill(item[1])).flat();
         let memory = {role: 'upgrader', changedRole: false, building: false, sourceSpot: targetId, sourceQuelle: 'source'};
         
@@ -56,4 +81,4 @@ var roleUpgrader = {
     }
 };
 
-module.exports = roleUpgrader;
+module.exports = upgrader;

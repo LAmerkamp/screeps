@@ -112,7 +112,9 @@ let files = {
     getRoomSources: __require(15,3),
     getRoomHarvestingSpots: __require(16,3),
     getTotalFreeHarvestingSpots: __require(17,3),
-    setSourceSelection: __require(18,3)
+    setSourceSelection: __require(18,3),
+    constructStronghold: __require(19,3),
+    buildStronghold: __require(20,3)
 }
 return module.exports;
 }
@@ -138,7 +140,7 @@ var basicHarveste = {
         } else {
             var target = creep.room.find(FIND_STRUCTURES, {
                 filter: (s) => {
-                    return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_CONTAINER)
+                    return (s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_CONTAINER)
                     && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 
                 }
@@ -147,6 +149,8 @@ var basicHarveste = {
             if(target.length > 0){
                 creep.transferEnergy(target[0]);
             } else if (creep.store[RESOURCE_ENERGY] != 0){
+                creep.say("werde zu upgrader");
+                creep.memory.building = true;
                 creep.changeRole('upgrader', true);
             }
             
@@ -156,10 +160,28 @@ var basicHarveste = {
     spawnData: function(spawn) {
         var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
 
+        var maxSpawnStorage = spawn.room.energyCapacityAvailable;
+
+        let maxValueForWork = Math.trunc((maxSpawnStorage / 2) / 100);
+        let maxValueForCarry = Math.trunc((maxSpawnStorage /4 ) / 50);
+        let maxValueForMove = Math.trunc((maxSpawnStorage / 4) / 50);
+
+        let rest = maxSpawnStorage - maxValueForWork*100 - maxValueForCarry*50 - maxValueForMove*50;
+        if(rest > 100){
+            maxValueForCarry++;
+            maxValueForMove++;
+        } else if(rest >= 50){
+            maxValueForMove++;
+        }
+        if(maxValueForWork + maxValueForCarry + maxValueForMove > 50 ){
+            maxValueForWork = 20;
+            maxValueForCarry = 15;
+            maxValueForMove = 15;
+        }
         var bodyParts = [
-            [ 1, WORK ],
-            [ 1, CARRY ],
-            [ 1, MOVE ]
+            [ maxValueForWork, WORK ],
+            [ maxValueForCarry, CARRY ],
+            [ maxValueForMove, MOVE ]
         ];
         
         let name = 'basicHarveste' + Game.time;
@@ -214,7 +236,7 @@ return module.exports;
 /********** End of module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\stationary_harvester.js **********/
 /********** Start module 6: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\upgrader.js **********/
 __modules[6] = function(module, exports) {
-var roleUpgrader = {
+var upgrader = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -222,47 +244,72 @@ var roleUpgrader = {
         var maxStorage = Game.rooms[creep.room.name].energyCapacityAvailable;
         var freeStorage = maxStorage - avalibleEnergy;
 
+
         if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
-            creep.say('harvesting');
+            creep.say('get Energy');
             creep.memory.building = false;
+            if(creep.memory.changedRole){
+                creep.say("werde zu harvester");
+                creep.memory.storeEnergy = false;
+                creep.changeRole('basicHarveste', false);
+            } else if(freeStorage == 0){
+                creep.memory.sourceQuelle = 'structure';
+            }
         }
         if(!creep.memory.building && creep.store.getFreeCapacity() == 0){
             creep.say('upgrade');
             creep.memory.building = true;
         }
 
+
+
         if(creep.memory.building){
-            if(creep.memory.changedRole && freeStorage > creep.store[RESOURCE_ENERGY]){
-                creep.memory.building = false;
+            if(creep.memory.changedRole && freeStorage > avalibleEnergy){
+                creep.say("werde zu harvester");
                 creep.memory.storeEnergy = true;
                 creep.changeRole('basicHarveste', false);
             }
             creep.upgeradeContollerOrBuild();
-            if(creep.memory.sourceQuelle == 'structure' && (avalibleEnergy < 100 || creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep)){
-                creep.memory.sourceQuelle = 'source';
-            } else if (creep.memory.sourceQuelle == 'source' && freeStorage == 0 && !creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep){
-                creep.memory.sourceQuelle = 'structure';
-            }
-        }else {
-            if(creep.memory.sourceQuelle == 'source' || !creep.memory.sourceQuelle){
+        } else {
+            if(creep.memory.sourceQuelle == 'source'){
                 creep.harvesting();
-            }else if(creep.memory.sourceQuelle == 'structure'){
+            } else if(creep.memory.sourceQuelle == 'structure'){
                 creep.takeEnergyFromSpawn();
+                if(freeStorage > avalibleEnergy){
+                    creep.memory.sourceQuelle = 'source';
+                }
             }
-            
         }
 
     },
     spawnData: function(spawn) {
         var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
 
+        var maxSpawnStorage = spawn.room.energyCapacityAvailable;
+
+        let maxValueForWork = Math.trunc((maxSpawnStorage / 2) / 100);
+        let maxValueForCarry = Math.trunc((maxSpawnStorage /4 ) / 50);
+        let maxValueForMove = Math.trunc((maxSpawnStorage / 4) / 50);
+
+        let rest = maxSpawnStorage - maxValueForWork*100 - maxValueForCarry*50 - maxValueForMove*50;
+        if(rest > 100){
+            maxValueForCarry++;
+            maxValueForMove++;
+        } else if(rest >= 50){
+            maxValueForMove++;
+        }
+        if(maxValueForWork + maxValueForCarry + maxValueForMove > 50 ){
+            maxValueForWork = 20;
+            maxValueForCarry = 15;
+            maxValueForMove = 15;
+        }
         var bodyParts = [
-            [ 1, WORK ],
-            [ 1, CARRY ],
-            [ 1, MOVE ]
+            [ maxValueForWork, WORK ],
+            [ maxValueForCarry, CARRY ],
+            [ maxValueForMove, MOVE ]
         ];
         
-        let name = 'Upgrader' + Game.time;
+        let name = 'upgrader' + Game.time;
         let body = bodyParts.map(item => Array(item[0]).fill(item[1])).flat();
         let memory = {role: 'upgrader', changedRole: false, building: false, sourceSpot: targetId, sourceQuelle: 'source'};
         
@@ -270,7 +317,7 @@ var roleUpgrader = {
     }
 };
 
-module.exports = roleUpgrader;
+module.exports = upgrader;
 return module.exports;
 }
 /********** End of module 6: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\upgrader.js **********/
@@ -329,11 +376,11 @@ function spawnCreeps(room) {
     
     if(spawnStage == 0){
         var basicHarvestes = _.filter(Game.creeps, (c) => (c.memory.role == 'basicHarveste' && c.room.name == room.name || c.memory.role == 'upgrader' && c.memory.changedRole && c.room.name == room.name) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id); 
-        var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id);
+        var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name && !c.memory.changedRole) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id);
 
         if(basicHarvestes.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots) {
             creepSpawnData = creepLogic['basicHarveste'] && creepLogic['basicHarveste'].spawnData(spawn);
-        } else if (upgrader.length < 0) {
+        } else if (upgrader.length < 2) {
             creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(spawn);
         }
 
@@ -529,6 +576,108 @@ Spawn.prototype.setSourceSelection = function setSourceSelection(a){
 return module.exports;
 }
 /********** End of module 18: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\set_source_selection.js **********/
+/********** Start module 19: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\construct_stronghold.js **********/
+__modules[19] = function(module, exports) {
+Spawn.prototype.constructStronghold = function constructStronghold(){
+    var x = this.pos.x;
+    var y = this.pos.y;
+
+    /*var spawnArea = [
+        [-5,-5],[-4,-5],[-3,-5],[-2,-5],[-1,-5],[0,-5],[1,-5],[2,-5],[3,-5],[4,-5],[5,-5],
+        [-5,-4],[-4,-4],[-3,-4],[-2,-4],[-1,-4],[0,-4],[1,-4],[2,-4],[3,-4],[4,-4],[5,-4],
+        [-5,-3],[-4,-3],[-3,-3],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[3,-3],[4,-3],[5,-3],
+        [-5,-2],[-4,-2],[-3,-2],[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[3,-2],[4,-2],[5,-2],
+        [-5,-1],[-4,-1],[-3,-1],[-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1],[3,-1],[4,-1],[5,-1],
+        [-5,0],[-4,0],[-3,0],[-2,0],[-1,0], [SPAWN], [1,0],[2,0],[3,0],[4,0],[5,0],
+        [-5,1],[-4,1],[-3,1],[-2,1],[-1,1],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],
+        [-5,2],[-4,2],[-3,2],[-2,2],[-1,2],[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],
+        [-5,3],[-4,3],[-3,3],[-2,3],[-1,3],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],
+        [-5,4],[-4,4],[-3,4],[-2,4],[-1,4],[0,4],[1,4],[2,4],[3,4],[4,4],[5,4],
+        [-5,5],[-4,5],[-3,5],[-2,5],[-1,5],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5]
+    ];*/
+    var buildPattern = [
+        [2],[2],[2],[2],[2],[2],[2],
+        [2],[1],[1],[2],[1],[1],[2],
+        [2],[1],[3],[2],[1],[1],[2],
+        [2],[2],[2],[0],[2],[2],[2],
+        [2],[1],[1],[2],[1],[1],[2],
+        [2],[1],[1],[2],[1],[1],[2],
+        [2],[2],[2],[2],[2],[2],[2]
+    ];
+    
+
+    var extensionStart = [
+        [x,y-3],[x-3,y],[x-6,y-3],[x-3,y-6],[x-3,y-3]
+    ];
+
+    const terrain = Game.map.getRoomTerrain(this.room.name);
+    for(let i = 0; i < extensionStart.length; i++){
+        var extensionArea = [
+            [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],
+            [0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+            [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],
+            [0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],
+            [0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],
+            [0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],
+            [0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[6,6]
+        ];
+
+        let StartX = extensionStart[i][0];
+        let StartY = extensionStart[i][1];
+        let isValid = true;
+        for(let n = 0; n < extensionArea.length; n++){
+            switch(terrain.get(StartX+extensionArea[n][0], StartY + extensionArea[n][1])) {
+                case TERRAIN_MASK_WALL:
+                    isValid = false;
+                    break;
+                case TERRAIN_MASK_SWAMP:
+                    isValid = false;
+                    break;
+                case 0:
+                    extensionArea[n][0] = StartX+extensionArea[n][0];
+                    extensionArea[n][1] = StartY+extensionArea[n][1];
+                    extensionArea[n][2] = buildPattern[n][0];
+                    break;   
+            }
+            if(!isValid) break;
+        }
+        if(isValid){
+            this.memory.strongholdPattern = extensionArea;
+            break;
+        }
+    }
+}
+return module.exports;
+}
+/********** End of module 19: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\construct_stronghold.js **********/
+/********** Start module 20: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\build_stronghold.js **********/
+__modules[20] = function(module, exports) {
+Spawn.prototype.buildStronghold = function buildStronghold(){
+    if(!this.memory.strongholdPattern){
+        console.log("Es ist keine Stronghold gesetzt");
+    } else {
+        var pattern = this.memory.strongholdPattern;
+        for(var i = 0; i < pattern.length; i++){
+            switch(pattern[i][2]) {
+                case 0:
+                    break;
+                case 1:
+                    this.room.createConstructionSite(pattern[i][0], pattern[i][1], STRUCTURE_EXTENSION);
+                    break;
+                case 2:
+                    this.room.createConstructionSite(pattern[i][0], pattern[i][1], STRUCTURE_ROAD);
+                    break;
+                case 3:
+                    this.room.createConstructionSite(pattern[i][0], pattern[i][1], STRUCTURE_STORAGE);
+                    break;    
+            }  
+        }
+        
+    }
+}
+return module.exports;
+}
+/********** End of module 20: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\spawn_actions\build_stronghold.js **********/
 /********** Footer **********/
 if(typeof module === "object")
 	module.exports = __require(0);

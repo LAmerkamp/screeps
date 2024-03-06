@@ -1,32 +1,23 @@
 Spawn.prototype.buildStronghold = function buildStronghold(){
-    var spawnArea = [
-        [-5,-5],[-4,-5],[-3,-5],[-2,-5],[-1,-5],[0,-5],[1,-5],[2,-5],[3,-5],[4,-5],[5,-5],
-        [-5,-4],[-4,-4],[-3,-4],[-2,-4],[-1,-4],[0,-4],[1,-4],[2,-4],[3,-4],[4,-4],[5,-4],
-        [-5,-3],[-4,-3],[-3,-3],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[3,-3],[4,-3],[5,-3],
-        [-5,-2],[-4,-2],[-3,-2],[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[3,-2],[4,-2],[5,-2],
-        [-5,-1],[-4,-1],[-3,-1],[-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1],[3,-1],[4,-1],[5,-1],
-        [-5,0],[-4,0],[-3,0],[-2,0],[-1,0],[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],
-        [-5,1],[-4,1],[-3,1],[-2,1],[-1,1],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],
-        [-5,2],[-4,2],[-3,2],[-2,2],[-1,2],[0,2],[1,2],[2,1],[3,2],[4,2],[5,2],
-        [-5,3],[-4,3],[-3,3],[-2,3],[-1,3],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],
-        [-5,4],[-4,4],[-3,4],[-2,4],[-1,4],[0,4],[1,4],[2,4],[3,4],[4,4],[5,4],
-        [-5,5],[-4,5],[-3,5],[-2,5],[-1,5],[0,5],[1,5],[2,5],[3,5],[4,5],[5,5]
-    ];
-
-    var terrain = [spawnArea.length];
-
-    const terrain = Game.map.getRoomTerrain(this.room.name);
-    for(let i = 0; i < variations.length; i++){
-        switch(terrain.get(x+variations[i][0], y + variations[i][1])) {
-            case TERRAIN_MASK_WALL:
-                terrain[i] = 1;
-                break;
-            case TERRAIN_MASK_SWAMP:
-                terrain[i] = 2;
-                break;
-            case 0:
-                terrain[i] = 0;
-                break;   
+    if(!this.memory.strongholdPattern){
+        console.log("Es ist keine Stronghold gesetzt");
+    } else {
+        var pattern = this.memory.strongholdPattern;
+        for(var i = 0; i < pattern.length; i++){
+            switch(pattern[i][2]) {
+                case 0:
+                    break;
+                case 1:
+                    this.room.createConstructionSite(pattern[i][0], pattern[i][1], STRUCTURE_EXTENSION);
+                    break;
+                case 2:
+                    this.room.createConstructionSite(pattern[i][0], pattern[i][1], STRUCTURE_ROAD);
+                    break;
+                case 3:
+                    this.room.createConstructionSite(pattern[i][0], pattern[i][1], STRUCTURE_STORAGE);
+                    break;    
+            }  
         }
+        
     }
 }

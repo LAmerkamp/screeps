@@ -11,7 +11,8 @@ function spawnCreeps(room) {
         setSpawnMemory(spawn);
         spawn.memory.isSpawningCreep = null;
         spawn.memory.actionExecuted = true;
-        spawn.buildStronghold();
+        //spawn.constructStronghold();
+        //spawn.buildStronghold();
     }
 
     let creepSpawnData;
@@ -24,11 +25,11 @@ function spawnCreeps(room) {
     
     if(spawnStage == 0){
         var basicHarvestes = _.filter(Game.creeps, (c) => (c.memory.role == 'basicHarveste' && c.room.name == room.name || c.memory.role == 'upgrader' && c.memory.changedRole && c.room.name == room.name) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id); 
-        var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id);
+        var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name && !c.memory.changedRole) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id);
 
         if(basicHarvestes.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots) {
             creepSpawnData = creepLogic['basicHarveste'] && creepLogic['basicHarveste'].spawnData(spawn);
-        } else if (upgrader.length < 0) {
+        } else if (upgrader.length < 2) {
             creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(spawn);
         }
 
