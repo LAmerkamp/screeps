@@ -11,5 +11,6 @@ let files = {
     getRoomSources: require('./spawn_actions/get_room_sources'),
     getRoomHarvestingSpots: require('./spawn_actions/get_room_harvesting_spots'),
     getTotalFreeHarvestingSpots: require('./spawn_actions/get_total_room_harvesting_spots'),
-    setSourceSelection: require('./spawn_actions/set_source_selection')
+    setSourceSelection: require('./spawn_actions/set_source_selection'),
+    buildStronghold: require('./spawn_actions/build_stronghold')
 }

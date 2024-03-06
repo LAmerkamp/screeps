@@ -1,6 +1,6 @@
 let creepLogic = {
-    starter: require('./starter'),
-    harvester: require('./harvester'),
+    basicHarveste: require('./basic_harvester'),
+    stationaryHarvester: require('./stationary_harvester'),
     upgrader: require('./upgrader'),
     attacker: require('./attacker')
 }

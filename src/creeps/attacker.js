@@ -15,7 +15,7 @@ var attacker = {
 
     spawnData: function(room) {
         let name = 'attacker' + Game.time;
-        let body = [RANGED_ATTACK, MOVE];
+        let body = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE];
         let memory = {role: 'attacker'};
     
         return {name, body, memory};

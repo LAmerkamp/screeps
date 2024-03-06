@@ -9,7 +9,6 @@ var roleUpgrader = {
         if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
             creep.say('harvesting');
             creep.memory.building = false;
-            
         }
         if(!creep.memory.building && creep.store.getFreeCapacity() == 0){
             creep.say('upgrade');
@@ -17,21 +16,24 @@ var roleUpgrader = {
         }
 
         if(creep.memory.building){
+            if(creep.memory.changedRole && freeStorage > creep.store[RESOURCE_ENERGY]){
+                creep.memory.building = false;
+                creep.memory.storeEnergy = true;
+                creep.changeRole('basicHarveste', false);
+            }
             creep.upgeradeContollerOrBuild();
+            if(creep.memory.sourceQuelle == 'structure' && (avalibleEnergy < 100 || creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep)){
+                creep.memory.sourceQuelle = 'source';
+            } else if (creep.memory.sourceQuelle == 'source' && freeStorage == 0 && !creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep){
+                creep.memory.sourceQuelle = 'structure';
+            }
         }else {
-            if(avalibleEnergy > 210){
-                creep.takeEnergyFromSpawn();
-            }else {
+            if(creep.memory.sourceQuelle == 'source' || !creep.memory.sourceQuelle){
                 creep.harvesting();
+            }else if(creep.memory.sourceQuelle == 'structure'){
+                creep.takeEnergyFromSpawn();
             }
             
-        }
-        
-        
-
-        if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
-            creep.memory.building = false;
-            creep.changeRole('starter', false);
         }
 
     },
@@ -40,9 +42,15 @@ var roleUpgrader = {
     spawnData: function(spawn) {
         var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
 
+        var bodyParts = [
+            [ 1, WORK ],
+            [ 1, CARRY ],
+            [ 1, MOVE ]
+        ];
+        
         let name = 'Upgrader' + Game.time;
-        let body = [WORK, CARRY, MOVE];
-        let memory = {role: 'upgrader', changedRole: false, building: false, sourceSpot: targetId};
+        let body = bodyParts.map(item => Array(item[0]).fill(item[1])).flat();
+        let memory = {role: 'upgrader', changedRole: false, building: false, sourceSpot: targetId, sourceQuelle: 'source'};
         
         return {name, body, memory};
     }

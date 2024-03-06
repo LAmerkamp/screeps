@@ -69,10 +69,6 @@ module.exports.loop = function () {
     }
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
-            /* if(Memory.creeps[name].role == 'starter' || Memory.creeps[name].role == 'upgrader'){
-              Game.spawns['Spawn1'].memory.blockedSourceSpot = Memory.creeps[name].sourceSpot;  
-            } */
-            
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }
@@ -84,8 +80,8 @@ return module.exports;
 /********** Start module 1: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\index.js **********/
 __modules[1] = function(module, exports) {
 let creepLogic = {
-    starter: __require(4,1),
-    harvester: __require(5,1),
+    basicHarveste: __require(4,1),
+    stationaryHarvester: __require(5,1),
     upgrader: __require(6,1),
     attacker: __require(7,1)
 }
@@ -121,24 +117,25 @@ let files = {
 return module.exports;
 }
 /********** End of module 3: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\index.js **********/
-/********** Start module 4: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\starter.js **********/
+/********** Start module 4: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\basic_harvester.js **********/
 __modules[4] = function(module, exports) {
-var starter = {
+var basicHarveste = {
     /** @param {Creep} creep **/
     run: function (creep) {
 
-        /*var upgraders = _.filter(Game.creeps, (ce) => ce.memory.role == 'upgrader');
-        if(upgraders.length == 1){
-            var sameTargetCreep = _.filter(Game.creeps, (c) => (c.memory.role == 'starter'  || (c.memory.role == 'upgrader' && c.memory.changedRole) ) && c.memory.sourceSpot == creep.memory.sourceSpot);
-            if(sameTargetCreep.length == 2){
-                sameTargetCreep[0].changeRole('upgrader', true);
-            }
-        }*/
-
-        if(creep.store.getFreeCapacity() > 0) {
-            creep.harvesting();
+        if(!creep.memory.storeEnergy && creep.store.getFreeCapacity() == 0){
+            creep.say("store Energy");
+            creep.memory.storeEnergy = true;
         }
-        else {
+        if(creep.memory.storeEnergy && creep.store[RESOURCE_ENERGY] == 0){
+            creep.say("harvesting");
+            creep.memory.storeEnergy = false;
+        }
+
+
+        if(!creep.memory.storeEnergy) { //bool zum hin und her switchen (harvester/resources abgeben)
+            creep.harvesting();
+        } else {
             var target = creep.room.find(FIND_STRUCTURES, {
                 filter: (s) => {
                     return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_CONTAINER)
@@ -158,49 +155,38 @@ var starter = {
 
     spawnData: function(spawn) {
         var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
-        /*var starter = _.filter(Game.creeps, (c) => c.memory.role == 'starter' || (c.memory.role == 'upgrader' && c.memory.changedRole));
-        var target = room.find(FIND_SOURCES);
+
+        var bodyParts = [
+            [ 1, WORK ],
+            [ 1, CARRY ],
+            [ 1, MOVE ]
+        ];
         
-
-        for(var i = 0; i < starter.length; i++){
-            for(var n = 0; n < target.length; n++){
-                if(starter[i].memory.sourceSpot == target[n].id){
-                    target.splice(n, 1);
-                }
-            } 
-        }
-        if(target.length > 0){
-            targetId = target[0].id;
-        }
-         if(starter.length == 1){
-            targetId = starter[0].memory.sourceSpot;
-        } */
-
-        let name = 'starter' + Game.time;
-        let body = [WORK, CARRY, MOVE];
-        let memory = {role: 'starter', changedRole: false, building: false, sourceSpot: targetId};
+        let name = 'basicHarveste' + Game.time;
+        let body = bodyParts.map(item => Array(item[0]).fill(item[1])).flat();
+        let memory = {role: 'basicHarveste', changedRole: false, building: false, sourceSpot: targetId, storeEnergy: false};
     
         return {name, body, memory};
     }
 };
 
-module.exports = starter;
+module.exports = basicHarveste;
 return module.exports;
 }
-/********** End of module 4: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\starter.js **********/
-/********** Start module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\harvester.js **********/
+/********** End of module 4: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\basic_harvester.js **********/
+/********** Start module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\stationary_harvester.js **********/
 __modules[5] = function(module, exports) {
-var harvester = {
+var stationaryHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
         
     },
     spawnData: function(room) {
-        var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
+        var stationaryHarvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'stationaryHarvester');
         var target = room.find(FIND_SOURCES, {
             filter: (source) => {
-                    source != harvesters.memory.sourceSpot;
+                    source != stationaryHarvesters.memory.sourceSpot;
             }
         });
 
@@ -214,18 +200,18 @@ var harvester = {
         } */
         
 
-        let name = 'Harvester' + Game.time;
+        let name = 'stationaryHarvester' + Game.time;
         let body = [WORK, WORK, WORK, MOVE];
-        let memory = {role: 'harvester', sourceSpot: ''};
+        let memory = {role: 'stationaryHarvester', sourceSpot: ''};
         
          return {name, body, memory};
     }
 };
 
-module.exports = harvester;
+module.exports = stationaryHarvester;
 return module.exports;
 }
-/********** End of module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\harvester.js **********/
+/********** End of module 5: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\stationary_harvester.js **********/
 /********** Start module 6: C:\Users\lukas\Documents\screeps-starter-master\src\creeps\upgrader.js **********/
 __modules[6] = function(module, exports) {
 var roleUpgrader = {
@@ -239,7 +225,6 @@ var roleUpgrader = {
         if(creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
             creep.say('harvesting');
             creep.memory.building = false;
-            
         }
         if(!creep.memory.building && creep.store.getFreeCapacity() == 0){
             creep.say('upgrade');
@@ -247,30 +232,39 @@ var roleUpgrader = {
         }
 
         if(creep.memory.building){
+            if(creep.memory.changedRole && freeStorage > creep.store[RESOURCE_ENERGY]){
+                creep.memory.building = false;
+                creep.memory.storeEnergy = true;
+                creep.changeRole('basicHarveste', false);
+            }
             creep.upgeradeContollerOrBuild();
+            if(creep.memory.sourceQuelle == 'structure' && (avalibleEnergy < 100 || creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep)){
+                creep.memory.sourceQuelle = 'source';
+            } else if (creep.memory.sourceQuelle == 'source' && freeStorage == 0 && !creep.room.find(FIND_MY_SPAWNS)[0].memory.isSpawningCreep){
+                creep.memory.sourceQuelle = 'structure';
+            }
         }else {
-            if(avalibleEnergy > 210){
-                creep.takeEnergyFromSpawn();
-            }else {
+            if(creep.memory.sourceQuelle == 'source' || !creep.memory.sourceQuelle){
                 creep.harvesting();
+            }else if(creep.memory.sourceQuelle == 'structure'){
+                creep.takeEnergyFromSpawn();
             }
             
-        }
-        
-        
-
-        if((avalibleEnergy < maxStorage /* maxStorage/10 < freeStorage || avalibleEnergy <= 300 */) && creep.memory.changedRole){
-            creep.memory.building = false;
-            creep.changeRole('starter', false);
         }
 
     },
     spawnData: function(spawn) {
         var targetId = spawn.memory.roomSources[spawn.memory.sourceSelection].id;
 
+        var bodyParts = [
+            [ 1, WORK ],
+            [ 1, CARRY ],
+            [ 1, MOVE ]
+        ];
+        
         let name = 'Upgrader' + Game.time;
-        let body = [WORK, CARRY, MOVE];
-        let memory = {role: 'upgrader', changedRole: false, building: false, sourceSpot: targetId};
+        let body = bodyParts.map(item => Array(item[0]).fill(item[1])).flat();
+        let memory = {role: 'upgrader', changedRole: false, building: false, sourceSpot: targetId, sourceQuelle: 'source'};
         
         return {name, body, memory};
     }
@@ -299,7 +293,7 @@ var attacker = {
 
     spawnData: function(room) {
         let name = 'attacker' + Game.time;
-        let body = [RANGED_ATTACK, MOVE];
+        let body = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE];
         let memory = {role: 'attacker'};
     
         return {name, body, memory};
@@ -321,35 +315,45 @@ function spawnCreeps(room) {
     
     if (!spawn.memory.actionExecuted) {
         setSpawnMemory(spawn);
+        spawn.memory.isSpawningCreep = null;
         spawn.memory.actionExecuted = true;
     }
 
     let creepSpawnData;
     let spawnStage = spawn.memory.spawnStage;
+
+    /* var enemyTarget = spawn.room.find(FIND_HOSTILE_CREEPS);
+    if(enemyTarget.length > 0){
+        spawnStage = 1;
+    } */
     
-    if(spawnStage == 0){ //2.Generation werden nunoch upgrader gespawned BEHEBEN!
-        var starter = _.filter(Game.creeps, (c) => ((c.memory.role == 'starter' && c.room.name == room.name) || (c.memory.role == 'upgrader' && c.room.name == room.name))
-                && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id); 
-                
-        if(starter.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots) {
-            creepSpawnData = creepLogic['starter'] && creepLogic['starter'].spawnData(spawn);
-        } else if (starter.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots+1) {
+    if(spawnStage == 0){
+        var basicHarvestes = _.filter(Game.creeps, (c) => (c.memory.role == 'basicHarveste' && c.room.name == room.name || c.memory.role == 'upgrader' && c.memory.changedRole && c.room.name == room.name) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id); 
+        var upgrader = _.filter(Game.creeps, (c) => (c.memory.role == 'upgrader' && c.room.name == room.name) && c.memory.sourceSpot == spawn.memory.roomSources[spawn.memory.sourceSelection].id);
+
+        if(basicHarvestes.length < spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots) {
+            creepSpawnData = creepLogic['basicHarveste'] && creepLogic['basicHarveste'].spawnData(spawn);
+        } else if (upgrader.length < 0) {
             creepSpawnData = creepLogic['upgrader'] && creepLogic['upgrader'].spawnData(spawn);
         }
 
-        if(starter.length >= spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots+1){
+        if(basicHarvestes.length + upgrader.length >= spawn.memory.roomSources[spawn.memory.sourceSelection].freeHarvestingSpots+1){
             spawn.setSourceSelection(spawn.memory.sourceSelection+1);
         }
     }
 
-    /* console.log(room, JSON.stringify(creepSpawnData)); */
+    if(spawnStage == 1){
+        creepSpawnData = creepLogic['attacker'] && creepLogic['attacker'].spawnData(spawn);
+    }
+
+    spawn.memory.isSpawningCreep = creepSpawnData; 
 
     if (creepSpawnData) {
         let spawn = room.find(FIND_MY_SPAWNS)[0];
         let result = spawn.spawnCreep(creepSpawnData.body, creepSpawnData.name, {memory: creepSpawnData.memory});
     
         console.log("Tried to Spawn:", creepSpawnData.memory.role, result)
-    }
+    } 
 }
 
 function setSpawnMemory(spawn){
@@ -431,9 +435,15 @@ return module.exports;
 /********** Start module 14: C:\Users\lukas\Documents\screeps-starter-master\src\prototypes\creep_actions\take_enegy_from_spawn.js **********/
 __modules[14] = function(module, exports) {
 Creep.prototype.takeEnergyFromSpawn = function takeEnergyFromSpawn(){
-    var spawn = Game.spawns['Spawn1'];
-    if(this.withdraw(spawn, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-        this.moveTo(spawn);
+    var target = this.room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_CONTAINER)
+            && s.store[RESOURCE_ENERGY] >= this.store.getCapacity();
+        
+        }
+    });
+    if(this.withdraw(target[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        this.moveTo(target[0]);
     }
 }
 return module.exports;

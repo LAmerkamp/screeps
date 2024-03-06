@@ -23,10 +23,6 @@ module.exports.loop = function () {
     // free up memory if creep no longer exists
     for(var name in Memory.creeps) {
         if(!Game.creeps[name]) {
-            /* if(Memory.creeps[name].role == 'starter' || Memory.creeps[name].role == 'upgrader'){
-              Game.spawns['Spawn1'].memory.blockedSourceSpot = Memory.creeps[name].sourceSpot;  
-            } */
-            
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }

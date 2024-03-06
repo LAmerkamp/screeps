@@ -1,4 +1,4 @@
-var harvester = {
+var stationaryHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -9,10 +9,10 @@ var harvester = {
 
     // returns an object with the data to spawn a new creep
     spawnData: function(room) {
-        var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
+        var stationaryHarvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'stationaryHarvester');
         var target = room.find(FIND_SOURCES, {
             filter: (source) => {
-                    source != harvesters.memory.sourceSpot;
+                    source != stationaryHarvesters.memory.sourceSpot;
             }
         });
 
@@ -26,12 +26,12 @@ var harvester = {
         } */
         
 
-        let name = 'Harvester' + Game.time;
+        let name = 'stationaryHarvester' + Game.time;
         let body = [WORK, WORK, WORK, MOVE];
-        let memory = {role: 'harvester', sourceSpot: ''};
+        let memory = {role: 'stationaryHarvester', sourceSpot: ''};
         
          return {name, body, memory};
     }
 };
 
-module.exports = harvester;
+module.exports = stationaryHarvester;
