@@ -11,8 +11,14 @@ function spawnCreeps(room) {
         setSpawnMemory(spawn);
         spawn.memory.isSpawningCreep = null;
         spawn.memory.actionExecuted = true;
-        //spawn.constructStronghold();
-        //spawn.buildStronghold();
+        spawn.constructStronghold();
+        spawn.memory.buildStrongholdStage = 1;
+    }
+
+    if(spawn.memory.buildStrongholdStage < room.controller.level){
+        spawn.buildStronghold();
+        spawn.memory.buildStrongholdStage++;
+        
     }
 
     let creepSpawnData;

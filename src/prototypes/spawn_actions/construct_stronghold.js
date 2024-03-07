@@ -20,7 +20,7 @@ Spawn.prototype.constructStronghold = function constructStronghold(){
     // 0: bleibt frei
     // 1: Extension
     // 2: Road
-    // 3: Storage
+    // 3: Container
     var buildPattern = [
         [2],[2],[2],[2],[2],[2],[2],
         [2],[1],[1],[2],[1],[1],[2],
